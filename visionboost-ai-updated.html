@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VisionBoost AI — Free AI Video Enhancer</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050508;
+    --surface: rgba(255,255,255,0.04);
+    --surface2: rgba(255,255,255,0.07);
+    --border: rgba(255,255,255,0.08);
+    --accent: #00E5FF;
+    --accent2: #7B5EA7;
+    --accent3: #FF6B6B;
+    --gold: #FFD166;
+    --text: #F0F0F8;
+    --muted: rgba(240,240,248,0.45);
+    --grad1: linear-gradient(135deg, #00E5FF 0%, #7B5EA7 50%, #FF6B6B 100%);
+    --grad2: linear-gradient(135deg, #00E5FF 0%, #0095A8 100%);
+    --grad3: linear-gradient(135deg, #28C840 0%, #00A86B 100%);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; overflow-x: hidden; line-height: 1.6; }
+  h1,h2,h3 { font-family: 'Syne', sans-serif; line-height: 1.1; }
+
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.4;
+  }
+
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.1rem 6%; background: rgba(5,5,8,0.7);
+    backdrop-filter: blur(20px); border-bottom: 1px solid var(--border);
+  }
+  .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.25rem; background: var(--grad1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .nav-links { display: flex; gap: 2rem; list-style: none; }
+  .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.88rem; font-weight: 500; }
+  .free-badge { background: rgba(40,200,64,0.1); border: 1px solid rgba(40,200,64,0.25); color: rgba(40,200,64,0.9); border-radius: 100px; padding: 0.35rem 1.1rem; font-size: 0.78rem; font-weight: 700; }
+
+  .btn { display: inline-flex; align-items: center; gap: 0.5rem; border: none; cursor: pointer; text-decoration: none; white-space: nowrap; font-weight: 600; border-radius: 100px; padding: 0.85rem 2.2rem; }
+  .btn-cyan { background: var(--grad2); color: #000; font-weight: 700; }
+  .btn-cyan:hover { box-shadow: 0 8px 28px rgba(0,229,255,0.4); }
+  .btn-green { background: var(--grad3); color: #000; font-weight: 700; }
+  .btn-ghost { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+  .btn-lg { padding: 1.1rem 2.8rem; font-size: 1.05rem; }
+
+  #hero { position: relative; min-height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; padding: 9rem 6% 5rem; z-index: 1; }
+  .h-title { font-size: clamp(2.8rem, 7vw, 6rem); font-weight: 800; line-height: 1; margin-bottom: 1.4rem; }
+  .grad { background: var(--grad1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .h-sub { font-size: clamp(0.95rem, 2vw, 1.2rem); color: var(--muted); max-width: 560px; margin: 0 auto 2.5rem; }
+
+  #app { position: relative; z-index: 1; padding: 0 6% 6rem; }
+  .app-card { background: rgba(10,10,20,0.9); border: 1px solid var(--border); border-radius: 28px; max-width: 880px; margin: 0 auto; overflow: hidden; }
+
+  .app-tabs { display: flex; border-bottom: 1px solid var(--border); }
+  .app-tab { flex: 1; padding: 1.1rem; text-align: center; font-size: 0.85rem; font-weight: 600; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; }
+  .app-tab.on { color: var(--accent); border-bottom-color: var(--accent); background: rgba(0,229,255,0.03); }
+
+  .panel { padding: 2.5rem; display: none; }
+  .panel.on { display: block; }
+
+  .drop-zone { border: 2px dashed rgba(255,255,255,0.12); border-radius: 18px; padding: 4rem 2rem; text-align: center; cursor: pointer; background: rgba(255,255,255,0.01); }
+  .drop-zone:hover { border-color: rgba(0,229,255,0.45); background: rgba(0,229,255,0.03); }
+  .drop-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .dz-icon { font-size: 3.5rem; margin-bottom: 1rem; }
+  .dz-title { font-family: 'Syne', sans-serif; font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .dz-sub { font-size: 0.85rem; color: var(--muted); margin-bottom: 0.75rem; }
+
+  .file-bar { display: none; background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; padding: 1rem 1.4rem; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+  .file-bar.show { display: flex; }
+  .fb-icon { font-size: 2rem; }
+  .fb-info { flex: 1; min-width: 0; }
+  .fb-name { font-weight: 600; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fb-size { font-size: 0.78rem; color: var(--muted); }
+  .fb-rm { color: var(--muted); cursor: pointer; font-size: 1.2rem; }
+
+  .opts-lbl { font-size: 0.73rem; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 0.85rem; }
+  .opts-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 0.6rem; }
+  .opt { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 0.6rem 0.8rem; font-size: 0.8rem; cursor: pointer; }
+  .opt.on { background: rgba(0,229,255,0.1); border-color: rgba(0,229,255,0.35); color: var(--accent); }
+
+  .q-row { display: flex; gap: 0.6rem; margin: 1rem 0 1.5rem; }
+  .q-btn { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 0.65rem 0.5rem; text-align: center; cursor: pointer; }
+  .q-btn.on { background: rgba(123,94,167,0.15); border-color: rgba(123,94,167,0.4); color: #c4a8ff; }
+
+  .proc { display: none; margin: 1.5rem 0; }
+  .proc.show { display: block; }
+  .proc-bar-bg { height: 5px; background: var(--surface2); border-radius: 100px; overflow: hidden; margin-bottom: 1.2rem; }
+  .proc-bar { height: 100%; background: var(--grad2); width: 0%; }
+  .proc-steps { display: flex; flex-direction: column; gap: 0.5rem; }
+  .ps { display: flex; align-items: center; gap: 0.75rem; padding: 0.55rem 0.85rem; border-radius: 10px; font-size: 0.82rem; color: var(--muted); }
+  .ps.run { background: rgba(0,229,255,0.07); color: var(--accent); border: 1px solid rgba(0,229,255,0.15); }
+  .ps.done { color: rgba(40,200,64,0.8); }
+
+  .report { background: linear-gradient(135deg, rgba(0,229,255,0.05), rgba(123,94,167,0.05)); border: 1px solid rgba(0,229,255,0.15); border-radius: 14px; padding: 1.4rem; margin: 1.5rem 0; display: none; }
+  .report.show { display: block; }
+  .rpt-lbl { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--accent); margin-bottom: 0.85rem; }
+  .rpt-txt { font-size: 0.87rem; color: rgba(240,240,248,0.82); line-height: 1.7; }
+  .rpt-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 0.75rem; margin-top: 1rem; }
+  .rs { background: rgba(255,255,255,0.04); border-radius: 10px; padding: 0.65rem; text-align: center; }
+  .rs-n { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800; color: var(--accent); }
+  .rs-l { font-size: 0.68rem; color: var(--muted); margin-top: 0.2rem; }
+
+  .dl-box { background: linear-gradient(135deg, rgba(40,200,64,0.08), rgba(0,168,107,0.05)); border: 1px solid rgba(40,200,64,0.2); border-radius: 14px; padding: 1.75rem; text-align: center; margin-top: 1.5rem; display: none; }
+  .dl-box.show { display: block; }
+  .dl-title { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 0.35rem; }
+  .dl-sub { font-size: 0.82rem; color: var(--muted); margin-bottom: 1.25rem; }
+
+  #toasts { position: fixed; bottom: 2rem; right: 2rem; z-index: 9999; display: flex; flex-direction: column; gap: 0.7rem; }
+  .toast { background: rgba(12,12,22,0.97); border: 1px solid var(--border); border-radius: 12px; padding: 0.9rem 1.4rem; display: flex; align-items: center; gap: 0.7rem; font-size: 0.85rem; }
+  .toast.success { border-color: rgba(40,200,64,0.35); }
+  .toast.error { border-color: rgba(255,107,107,0.4); }
+
+  @media (max-width: 560px) {
+    .opts-grid { grid-template-columns: repeat(2,1fr); }
+    .rpt-stats { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div id="toasts"></div>
+
+<nav id="navbar">
+  <div class="logo">VisionBoost AI</div>
+  <ul class="nav-links">
+    <li><a href="#app">Enhance</a></li>
+  </ul>
+  <div class="free-badge">✓ 100% Free</div>
+</nav>
+
+<section id="hero">
+  <div>
+    <h1 class="h-title">
+      Enhance Any Video<br>
+      <span class="grad">Instantly with AI.</span>
+    </h1>
+    <p class="h-sub">Drop your video. Choose your enhancements. Download instantly — powered by AI, 100% free.</p>
+    <div style="margin-bottom: 2rem;">
+      <a href="#app" class="btn btn-cyan btn-lg">⚡ Enhance Now</a>
+    </div>
+  </div>
+</section>
+
+<section id="app">
+  <div class="app-card">
+    <div class="app-tabs">
+      <div class="app-tab on" onclick="switchTab('enhance')">⚡ Enhance Video</div>
+      <div class="app-tab" onclick="switchTab('history')">📁 History</div>
+    </div>
+
+    <div class="panel on" id="pEnhance">
+      <div class="file-bar" id="fileBar">
+        <div class="fb-icon">🎬</div>
+        <div class="fb-info">
+          <div class="fb-name" id="fileName">video.mp4</div>
+          <div class="fb-size" id="fileSize">0 MB</div>
+        </div>
+        <div class="fb-rm" onclick="clearFile()">✕</div>
+      </div>
+
+      <div class="drop-zone" id="dropZone" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+        <input type="file" accept="video/*" id="fileInput" onchange="onFileSelect(event)">
+        <div class="dz-icon">🎬</div>
+        <div class="dz-title">Drop your video here</div>
+        <div class="dz-sub">or click to browse</div>
+      </div>
+
+      <div id="optArea" style="display:none">
+        <div style="margin-top: 1.5rem;">
+          <div class="opts-lbl">Enhancements</div>
+          <div class="opts-grid">
+            <div class="opt on" onclick="toggleOpt(this)">🔬 Upscaling</div>
+            <div class="opt on" onclick="toggleOpt(this)">🌫️ Noise Reduction</div>
+            <div class="opt on" onclick="toggleOpt(this)">🎨 Color & HDR</div>
+            <div class="opt" onclick="toggleOpt(this)">📷 Stabilization</div>
+            <div class="opt" onclick="toggleOpt(this)">✨ Sharpening</div>
+            <div class="opt" onclick="toggleOpt(this)">👤 Face Enhancement</div>
+          </div>
+        </div>
+
+        <div style="margin-top: 1.5rem;">
+          <div class="opts-lbl">Output Quality</div>
+          <div class="q-row">
+            <div class="q-btn on" onclick="setQ(this,'1080p')">1080p</div>
+            <div class="q-btn" onclick="setQ(this,'4K')">4K</div>
+            <div class="q-btn" onclick="setQ(this,'8K')">8K</div>
+          </div>
+        </div>
+
+        <div style="text-align:center;">
+          <button class="btn btn-cyan btn-lg" onclick="startEnhance()">⚡ Enhance</button>
+        </div>
+      </div>
+
+      <div class="proc" id="procWrap">
+        <div class="proc-bar-bg"><div class="proc-bar" id="procBar"></div></div>
+        <div class="proc-steps">
+          <div class="ps" id="ps1"><span>📤</span> Uploading</div>
+          <div class="ps" id="ps2"><span>🔍</span> Analyzing</div>
+          <div class="ps" id="ps3"><span>🤖</span> Processing</div>
+          <div class="ps" id="ps4"><span>🎨</span> Enhancing</div>
+          <div class="ps" id="ps5"><span>📦</span> Finalizing</div>
+        </div>
+      </div>
+
+      <div class="report" id="reportBox">
+        <div class="rpt-lbl">✓ AI Enhancement Report</div>
+        <div class="rpt-txt" id="reportTxt"></div>
+        <div class="rpt-stats" id="reportStats"></div>
+      </div>
+
+      <div class="dl-box" id="dlBox">
+        <div class="dl-title">✅ Enhancement Complete!</div>
+        <div class="dl-sub" id="dlSub">Ready to download</div>
+        <button class="btn btn-green btn-lg" style="width: 100%; justify-content: center;" onclick="doDownload()">⬇️ Download</button>
+      </div>
+    </div>
+
+    <div class="panel" id="pHistory">
+      <div style="text-align: center; padding: 3rem 1rem; color: var(--muted);">
+        <div style="font-size: 3rem; margin-bottom: 0.75rem;">📂</div>
+        <p>No enhanced videos yet</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+const API_BASE = "http://localhost:5000";
+
+let file = null, quality = "1080p";
+
+function toast(msg, type = "info") {
+  const el = document.createElement("div");
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span>${{success:'✅',error:'❌',info:'ℹ️'}[type]}</span><span>${msg}</span>`;
+  document.getElementById("toasts").appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+function switchTab(t) {
+  document.querySelectorAll(".app-tab").forEach((el, i) => {
+    el.classList.toggle("on", (i === 0 && t === "enhance") || (i === 1 && t === "history"));
+  });
+  document.getElementById("pEnhance").classList.toggle("on", t === "enhance");
+  document.getElementById("pHistory").classList.toggle("on", t === "history");
+}
+
+function onDragOver(e) { e.preventDefault(); document.getElementById("dropZone").style.borderColor = "rgba(0,229,255,0.45)"; }
+function onDragLeave() { document.getElementById("dropZone").style.borderColor = "rgba(255,255,255,0.12)"; }
+function onDrop(e) {
+  e.preventDefault();
+  onDragLeave();
+  if (e.dataTransfer.files[0]?.type.startsWith("video/")) setFile(e.dataTransfer.files[0]);
+  else toast("Please drop a valid video", "error");
+}
+function onFileSelect(e) { if (e.target.files[0]) setFile(e.target.files[0]); }
+
+function setFile(f) {
+  file = f;
+  const mb = (f.size / 1024 / 1024).toFixed(1);
+  document.getElementById("fileName").textContent = f.name;
+  document.getElementById("fileSize").textContent = mb + " MB";
+  document.getElementById("fileBar").classList.add("show");
+  document.getElementById("dropZone").style.display = "none";
+  document.getElementById("optArea").style.display = "block";
+  document.getElementById("reportBox").classList.remove("show");
+  document.getElementById("dlBox").classList.remove("show");
+  document.getElementById("procWrap").classList.remove("show");
+  toast(f.name + " ready!", "success");
+}
+
+function clearFile() {
+  file = null;
+  document.getElementById("fileBar").classList.remove("show");
+  document.getElementById("dropZone").style.display = "block";
+  document.getElementById("optArea").style.display = "none";
+  document.getElementById("reportBox").classList.remove("show");
+  document.getElementById("dlBox").classList.remove("show");
+  document.getElementById("procWrap").classList.remove("show");
+  document.getElementById("fileInput").value = "";
+  ["ps1", "ps2", "ps3", "ps4", "ps5"].forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.remove("run", "done");
+  });
+  document.getElementById("procBar").style.width = "0%";
+}
+
+function toggleOpt(el) { el.classList.toggle("on"); }
+function setQ(el, q) { document.querySelectorAll(".q-btn").forEach(b => b.classList.remove("on")); el.classList.add("on"); quality = q; }
+
+async function startEnhance() {
+  if (!file) { toast("Select a video", "error"); return; }
+  const opts = [...document.querySelectorAll(".opt.on")].map(o => o.textContent.trim());
+  if (!opts.length) { toast("Select enhancements", "error"); return; }
+
+  document.getElementById("optArea").style.display = "none";
+  document.getElementById("fileBar").classList.remove("show");
+
+  const formData = new FormData();
+  formData.append("video", file);
+  formData.append("quality", quality);
+  formData.append("enhancements", JSON.stringify(opts));
+
+  try {
+    document.getElementById("procWrap").classList.add("show");
+    await runSteps();
+
+    const res = await fetch(API_BASE + "/api/enhance", { method: "POST", body: formData });
+    const data = await res.json();
+
+    document.getElementById("reportBox").classList.add("show");
+    document.getElementById("reportTxt").textContent = data.enhancement.report;
+    document.getElementById("reportStats").innerHTML = data.enhancement.stats
+      .map(s => `<div class="rs"><div class="rs-n">${s.val}</div><div class="rs-l">${s.label}</div></div>`)
+      .join("");
+
+    document.getElementById("dlBox").classList.add("show");
+    document.getElementById("dlBox").dataset.url = API_BASE + data.enhancement.downloadUrl;
+
+    toast("Enhancement complete!", "success");
+  } catch (err) {
+    toast("Error: " + err.message, "error");
+  }
+}
+
+async function runSteps() {
+  const bar = document.getElementById("procBar");
+  const ids = ["ps1", "ps2", "ps3", "ps4", "ps5"];
+  for (let i = 0; i < ids.length; i++) {
+    const el = document.getElementById(ids[i]);
+    el.classList.add("run");
+    await new Promise(r => setTimeout(r, 1000 + i * 350));
+    el.classList.remove("run");
+    el.classList.add("done");
+    bar.style.width = ((i + 1) / 5 * 100) + "%";
+  }
+  bar.style.width = "100%";
+}
+
+function doDownload() {
+  const url = document.getElementById("dlBox").dataset.url;
+  if (url) {
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = file.name;
+    a.click();
+    toast("Download started!", "success");
+  }
+}
+</script>
+
+</body>
+</html>
